@@ -1,0 +1,12 @@
+client/target
+**/*.rs.bk
+
+server/target
+**/*.rs.bk
+
+client/.vs
+client/chat_client/bin
+client/chat_client/obj
+
+server/*.db
+server/cargo.lock
