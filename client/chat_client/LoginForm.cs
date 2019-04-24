@@ -11,6 +11,7 @@ namespace chat_client {
         public LoginForm() {
             isConnected = false;
             InitializeComponent();
+            log_label.Text = "";
         }
 
         private void login_button_Click(object sender, EventArgs e) {
@@ -80,11 +81,42 @@ namespace chat_client {
                 return;
             }
 
-            RegistrationForm rf = new RegistrationForm(socket, this);
-            rf.StartPosition = FormStartPosition.Manual;
-            rf.Location = Location;
-            rf.Size = Size;
-            rf.Show();
+            ManageAccountForm mf = new ManageAccountForm(socket, this);
+            mf.StartPosition = FormStartPosition.Manual;
+            mf.Location = Location;
+            mf.Size = Size;
+            mf.setTypeOfForm(ManageAccountForm.ManageFormTypes.Registration);
+            mf.Show();
+            Hide();
+        }      
+
+        private void update_button_Click(object sender, EventArgs e) {
+            if (!isConnected) {
+                log_label.Text = "Not connected to server!";
+                return;
+            }
+
+            ManageAccountForm mf = new ManageAccountForm(socket, this);
+            mf.StartPosition = FormStartPosition.Manual;
+            mf.Location = Location;
+            mf.Size = Size;
+            mf.setTypeOfForm(ManageAccountForm.ManageFormTypes.Update);
+            mf.Show();
+            Hide();
+        }
+
+        private void delete_button_Click(object sender, EventArgs e) {
+            if(!isConnected) {
+                log_label.Text = "Not connected to server!";
+                return;
+            }
+
+            ManageAccountForm mf = new ManageAccountForm(socket, this);
+            mf.StartPosition = FormStartPosition.Manual;
+            mf.Location = Location;
+            mf.Size = Size;
+            mf.setTypeOfForm(ManageAccountForm.ManageFormTypes.Delete);
+            mf.Show();
             Hide();
         }
 

@@ -36,6 +36,8 @@
             this.log_label = new System.Windows.Forms.Label();
             this.registration_button = new System.Windows.Forms.Button();
             this.disconnect_button = new System.Windows.Forms.Button();
+            this.update_button = new System.Windows.Forms.Button();
+            this.delete_button = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // login_button
@@ -128,10 +130,11 @@
             // log_label
             // 
             this.log_label.AutoSize = true;
-            this.log_label.Location = new System.Drawing.Point(12, 350);
+            this.log_label.Location = new System.Drawing.Point(12, 430);
             this.log_label.Name = "log_label";
-            this.log_label.Size = new System.Drawing.Size(0, 17);
+            this.log_label.Size = new System.Drawing.Size(59, 17);
             this.log_label.TabIndex = 10;
+            this.log_label.Text = "Logging";
             // 
             // registration_button
             // 
@@ -153,11 +156,33 @@
             this.disconnect_button.UseVisualStyleBackColor = true;
             this.disconnect_button.Click += new System.EventHandler(this.disconnect_button_Click);
             // 
+            // update_button
+            // 
+            this.update_button.Location = new System.Drawing.Point(38, 336);
+            this.update_button.Name = "update_button";
+            this.update_button.Size = new System.Drawing.Size(325, 36);
+            this.update_button.TabIndex = 13;
+            this.update_button.Text = "update password";
+            this.update_button.UseVisualStyleBackColor = true;
+            this.update_button.Click += new System.EventHandler(this.update_button_Click);
+            // 
+            // delete_button
+            // 
+            this.delete_button.Location = new System.Drawing.Point(38, 379);
+            this.delete_button.Name = "delete_button";
+            this.delete_button.Size = new System.Drawing.Size(325, 34);
+            this.delete_button.TabIndex = 14;
+            this.delete_button.Text = "delete account";
+            this.delete_button.UseVisualStyleBackColor = true;
+            this.delete_button.Click += new System.EventHandler(this.delete_button_Click);
+            // 
             // LoginForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(385, 374);
+            this.ClientSize = new System.Drawing.Size(389, 473);
+            this.Controls.Add(this.delete_button);
+            this.Controls.Add(this.update_button);
             this.Controls.Add(this.disconnect_button);
             this.Controls.Add(this.registration_button);
             this.Controls.Add(this.log_label);
@@ -193,6 +218,8 @@
         private System.Windows.Forms.Label log_label;
         private System.Windows.Forms.Button registration_button;
         private System.Windows.Forms.Button disconnect_button;
+        private System.Windows.Forms.Button update_button;
+        private System.Windows.Forms.Button delete_button;
     }
 }
 

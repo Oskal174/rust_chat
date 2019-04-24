@@ -46,14 +46,15 @@ struct RegistrationMessage {
 struct DeleteAccountMessage {
     action: String,
     login: String,
-    password: String
+    password_hash: String
 }
 
 #[derive(Deserialize, Serialize)]
-struct ChangePasswordMessage {
+struct UpdatePasswordMessage {
     action: String,
     login: String,
-    new_password: String
+    password_hash: String,
+    new_password_hash: String
 }
 
 
@@ -120,7 +121,7 @@ fn processing_client(mut client_socket: TcpStream) {
             "\"authentication\""    => process_authentication(&mut client_socket, &sqlite_handler, serde_json::from_str(&input_str).unwrap()),
             "\"registration\""      => process_registration(&mut client_socket, &sqlite_handler, serde_json::from_str(&input_str).unwrap()),
             "\"delete_account\""    => process_delete_account(&mut client_socket, &sqlite_handler, serde_json::from_str(&input_str).unwrap()),
-            "\"change_password\""   => process_change_password(&mut client_socket, &sqlite_handler, serde_json::from_str(&input_str).unwrap()),
+            "\"update_password\""   => process_update_password(&mut client_socket, &sqlite_handler, serde_json::from_str(&input_str).unwrap()),
             _ => {},
         }
 
@@ -279,12 +280,94 @@ fn process_registration(socket: &mut TcpStream, sqlite_handler: &Connection, reg
 
 
 fn process_delete_account(socket: &mut TcpStream, sqlite_handler: &Connection, delete_data: DeleteAccountMessage) {
+    let sql = format!("SELECT password FROM user WHERE login = \"{}\"", delete_data.login);
+    let mut stmt: rusqlite::Statement;
+    match sqlite_handler.prepare(&sql) {
+        Ok(_s) => stmt = _s,
+        Err(_e) => {
+            let msg = ServerResponse {action: "delete_account".to_string(), code: 400, message: _e.to_string()};
+            send_message(socket, serde_json::to_string(&msg).unwrap(), true).unwrap();
+            return;
+        }
+    };
 
+    let mut rows = stmt.query(NO_PARAMS).unwrap();
+    match rows.next() {
+        Ok(Some(_row)) => { 
+            let password_hash: String = _row.get(0).unwrap();
+            if delete_data.password_hash != password_hash {
+                let msg = ServerResponse {action: "delete_account".to_string(), code: 400, message: "Wrong user password".to_string()};
+                send_message(socket, serde_json::to_string(&msg).unwrap(), true).unwrap();
+                return;
+            }
+        },
+        Ok(None) => {},
+        Err(_e) => {
+            let msg = ServerResponse {action: "delete_account".to_string(), code: 400, message: _e.to_string()};
+            send_message(socket, serde_json::to_string(&msg).unwrap(), true).unwrap();
+            return;
+        }
+    }
+
+    match sqlite_handler.execute("DELETE FROM user WHERE login = ?1", &[delete_data.login]) {
+        Ok(_u) => {
+            let response = ServerResponse {action: "delete_account".to_string(), code: 200, message: "OK".to_string()};
+            send_message(socket, serde_json::to_string(&response).unwrap(), true).unwrap();
+        }
+        Err(_e) => {
+            let msg = ServerResponse {action: "delete_account".to_string(), code: 400, message: _e.to_string()};
+            send_message(socket, serde_json::to_string(&msg).unwrap(), true).unwrap();
+        }
+    }
 }
 
 
-fn process_change_password(socket: &mut TcpStream, sqlite_handler: &Connection, change_data: ChangePasswordMessage) {
-    
+fn process_update_password(socket: &mut TcpStream, sqlite_handler: &Connection, update_data: UpdatePasswordMessage) {
+    let sql = format!("SELECT password FROM user WHERE login = \"{}\"", update_data.login);
+    let mut stmt: rusqlite::Statement;
+    match sqlite_handler.prepare(&sql) {
+        Ok(_s) => stmt = _s,
+        Err(_e) => {
+            let msg = ServerResponse {action: "update_password".to_string(), code: 400, message: _e.to_string()};
+            send_message(socket, serde_json::to_string(&msg).unwrap(), true).unwrap();
+            return;
+        }
+    };
+
+    let mut rows = stmt.query(NO_PARAMS).unwrap();
+    match rows.next() {
+        Ok(Some(_row)) => { 
+            let password_hash: String = _row.get(0).unwrap();
+            if update_data.password_hash != password_hash {
+                let msg = ServerResponse {action: "update_password".to_string(), code: 400, message: "Wrong user password".to_string()};
+                send_message(socket, serde_json::to_string(&msg).unwrap(), true).unwrap();
+                return;
+            }
+
+            if update_data.new_password_hash == password_hash {
+                let msg = ServerResponse {action: "update_password".to_string(), code: 400, message: "The new password should not be the same as the old one".to_string()};
+                send_message(socket, serde_json::to_string(&msg).unwrap(), true).unwrap();
+                return;
+            }
+        },
+        Ok(None) => {},
+        Err(_e) => {
+            let msg = ServerResponse {action: "update_password".to_string(), code: 400, message: _e.to_string()};
+            send_message(socket, serde_json::to_string(&msg).unwrap(), true).unwrap();
+            return;
+        }
+    }
+
+    match sqlite_handler.execute("UPDATE user SET password = ?1 WHERE login = ?2", &[update_data.new_password_hash, update_data.login]) {
+        Ok(_u) => {
+            let response = ServerResponse {action: "update_password".to_string(), code: 200, message: "OK".to_string()};
+            send_message(socket, serde_json::to_string(&response).unwrap(), true).unwrap();
+        }
+        Err(_e) => {
+            let msg = ServerResponse {action: "update_password".to_string(), code: 400, message: _e.to_string()};
+            send_message(socket, serde_json::to_string(&msg).unwrap(), true).unwrap();
+        }
+    }
 }
 
 

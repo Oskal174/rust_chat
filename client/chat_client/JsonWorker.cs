@@ -9,6 +9,9 @@ namespace chat_client {
 
         [DataContract]
         class Message {
+            [DataMember]
+            protected string action { get; set; }
+
             public string ToJson() {
                 // Make a stream to serialize into.
                 using (MemoryStream stream = new MemoryStream()) {
@@ -29,8 +32,6 @@ namespace chat_client {
         [DataContract]
         class ServerResponse : Message {
             [DataMember]
-            public string action { get; set; }
-            [DataMember]
             public int code { get; set; }
             [DataMember]
             public string message { get; set; }
@@ -38,8 +39,6 @@ namespace chat_client {
 
         [DataContract]
         class HandshakeMessage : Message {
-            [DataMember]
-            private string action { get; set; }
             [DataMember]
             private string secret { get; set; }
 
@@ -51,8 +50,6 @@ namespace chat_client {
 
         [DataContract]
         class AuthenticationMessage : Message {
-            [DataMember]
-            private string action { get; set; }
             [DataMember]
             private string login { get; set; }
             [DataMember]
@@ -68,14 +65,43 @@ namespace chat_client {
         [DataContract]
         class RegistrationMessage : Message {
             [DataMember]
-            private string action { get; set; }
-            [DataMember]
             private string login { get; set; }
             [DataMember]
             private string password_hash { get; set; }
 
             public RegistrationMessage(string l, string p) {
                 action = "registration";
+                login = l;
+                password_hash = p;
+            }
+        }
+
+        [DataContract]
+        class UpdateMessage : Message {
+            [DataMember]
+            private string login { get; set; }
+            [DataMember]
+            private string password_hash { get; set; }
+            [DataMember]
+            private string new_password_hash { get; set; }
+
+            public UpdateMessage(string l, string p, string np) {
+                action = "update_password";
+                login = l;
+                password_hash = p;
+                new_password_hash = np;
+            }
+        }
+
+        [DataContract]
+        class DeleteMessage : Message {
+            [DataMember]
+            private string login { get; set; }
+            [DataMember]
+            private string password_hash { get; set; }
+
+            public DeleteMessage(string l, string p) {
+                action = "delete_account";
                 login = l;
                 password_hash = p;
             }
@@ -89,12 +115,22 @@ namespace chat_client {
         }
 
         public byte[] jsonAuthentication(string login, string password) {
-            AuthenticationMessage am = new AuthenticationMessage(login, сreateMD5(password));
+            AuthenticationMessage am = new AuthenticationMessage(login, createMD5(password));
             return Encoding.ASCII.GetBytes(am.ToJson());
         }
 
         public byte[] jsonRegistration(string login, string password) {
-            RegistrationMessage rm = new RegistrationMessage(login, сreateMD5(password));
+            RegistrationMessage rm = new RegistrationMessage(login, createMD5(password));
+            return Encoding.ASCII.GetBytes(rm.ToJson());
+        }
+
+        public byte[] jsonUpdate(string login, string password, string new_password) {
+            UpdateMessage rm = new UpdateMessage(login, createMD5(password), createMD5(new_password));
+            return Encoding.ASCII.GetBytes(rm.ToJson());
+        }
+
+        public byte[] jsonDelete(string login, string password) {
+            DeleteMessage rm = new DeleteMessage(login, createMD5(password));
             return Encoding.ASCII.GetBytes(rm.ToJson());
         }
 
@@ -110,8 +146,7 @@ namespace chat_client {
             }
         }
 
-
-        private string сreateMD5(string input) {
+        private string createMD5(string input) {
             // Use input string to calculate MD5 hash
             using (System.Security.Cryptography.MD5 md5 = System.Security.Cryptography.MD5.Create()) {
                 byte[] inputBytes = Encoding.ASCII.GetBytes(input);
