@@ -25,6 +25,10 @@
         private void InitializeComponent() {
             this.chatText = new System.Windows.Forms.TextBox();
             this.logout = new System.Windows.Forms.Button();
+            this.updateChatWorker = new System.ComponentModel.BackgroundWorker();
+            this.messageText = new System.Windows.Forms.TextBox();
+            this.sendMessageButton = new System.Windows.Forms.Button();
+            this.usernameLabel = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // chatText
@@ -40,7 +44,8 @@
             // 
             // logout
             // 
-            this.logout.Location = new System.Drawing.Point(13, 405);
+            this.logout.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.logout.Location = new System.Drawing.Point(12, 446);
             this.logout.Name = "logout";
             this.logout.Size = new System.Drawing.Size(146, 33);
             this.logout.TabIndex = 1;
@@ -48,15 +53,51 @@
             this.logout.UseVisualStyleBackColor = true;
             this.logout.Click += new System.EventHandler(this.logout_Click);
             // 
+            // updateChatWorker
+            // 
+            this.updateChatWorker.DoWork += new System.ComponentModel.DoWorkEventHandler(this.updateChatWorker_DoWork);
+            // 
+            // messageText
+            // 
+            this.messageText.Location = new System.Drawing.Point(12, 333);
+            this.messageText.Multiline = true;
+            this.messageText.Name = "messageText";
+            this.messageText.Size = new System.Drawing.Size(567, 51);
+            this.messageText.TabIndex = 2;
+            // 
+            // sendMessageButton
+            // 
+            this.sendMessageButton.Location = new System.Drawing.Point(594, 333);
+            this.sendMessageButton.Name = "sendMessageButton";
+            this.sendMessageButton.Size = new System.Drawing.Size(166, 51);
+            this.sendMessageButton.TabIndex = 3;
+            this.sendMessageButton.Text = "Отправить";
+            this.sendMessageButton.UseVisualStyleBackColor = true;
+            this.sendMessageButton.Click += new System.EventHandler(this.sendMessageButton_Click);
+            // 
+            // usernameLabel
+            // 
+            this.usernameLabel.AutoSize = true;
+            this.usernameLabel.Location = new System.Drawing.Point(13, 310);
+            this.usernameLabel.Name = "usernameLabel";
+            this.usernameLabel.Size = new System.Drawing.Size(87, 17);
+            this.usernameLabel.TabIndex = 4;
+            this.usernameLabel.Text = "Current user";
+            // 
             // ChatForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 450);
+            this.ClientSize = new System.Drawing.Size(800, 491);
+            this.Controls.Add(this.usernameLabel);
+            this.Controls.Add(this.sendMessageButton);
+            this.Controls.Add(this.messageText);
             this.Controls.Add(this.logout);
             this.Controls.Add(this.chatText);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Fixed3D;
             this.Name = "ChatForm";
             this.Text = "ChatForm";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.ChatForm_FormClosing);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -66,5 +107,9 @@
 
         private System.Windows.Forms.TextBox chatText;
         private System.Windows.Forms.Button logout;
+        private System.ComponentModel.BackgroundWorker updateChatWorker;
+        private System.Windows.Forms.TextBox messageText;
+        private System.Windows.Forms.Button sendMessageButton;
+        private System.Windows.Forms.Label usernameLabel;
     }
 }

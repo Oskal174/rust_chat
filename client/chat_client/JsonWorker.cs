@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 using System.IO;
 using System.Runtime.Serialization.Json;
 using System.Runtime.Serialization;
@@ -12,15 +13,18 @@ namespace chat_client {
             [DataMember]
             protected string action { get; set; }
 
+            public Message() { }
+
+            public Message(string a) {
+                action = a;
+            }
+
             public string ToJson() {
-                // Make a stream to serialize into.
                 using (MemoryStream stream = new MemoryStream()) {
-                    // Serialize into the stream.
                     DataContractJsonSerializer serializer = new DataContractJsonSerializer(GetType());
                     serializer.WriteObject(stream, this);
                     stream.Flush();
-
-                    // Get the result as text.
+                    
                     stream.Seek(0, SeekOrigin.Begin);
                     using (StreamReader reader = new StreamReader(stream)) {
                         return reader.ReadToEnd();
@@ -107,6 +111,20 @@ namespace chat_client {
             }
         }
 
+        [DataContract]
+        class SendMessage : Message {
+            [DataMember]
+            private string text { get; set; }
+            [DataMember]
+            private int timestamp { get; set; }
+
+            public SendMessage(string t, int uts) {
+                action = "send_message";
+                timestamp = uts;
+                text = t;
+            }
+        }
+
         public JsonWorker() {}
 
         public byte[] jsonHandshake() {
@@ -117,6 +135,16 @@ namespace chat_client {
         public byte[] jsonAuthentication(string login, string password) {
             AuthenticationMessage am = new AuthenticationMessage(login, createMD5(password));
             return Encoding.ASCII.GetBytes(am.ToJson());
+        }
+
+        public byte[] jsonLogout() {
+            Message m = new Message("logout");
+            return Encoding.ASCII.GetBytes(m.ToJson());
+        }
+
+        public byte[] jsonCloseConnection() {
+            Message m = new Message("close_connection");
+            return Encoding.ASCII.GetBytes(m.ToJson());
         }
 
         public byte[] jsonRegistration(string login, string password) {
@@ -134,6 +162,16 @@ namespace chat_client {
             return Encoding.ASCII.GetBytes(rm.ToJson());
         }
 
+        public byte[] jsonSendMessage(string text, int unixTimestamp) {
+            SendMessage sm = new SendMessage(text, unixTimestamp);
+            return Encoding.ASCII.GetBytes(sm.ToJson());
+        }
+
+        public byte[] jsonGetMessages() {
+            Message m = new Message("get_messages");
+            return Encoding.ASCII.GetBytes(m.ToJson());
+        }
+
         public void serverResponceParse(byte[] jsonResponce) {
             string json = Encoding.ASCII.GetString(jsonResponce).TrimEnd('\0');
             using (var ms = new MemoryStream(Encoding.Unicode.GetBytes(json))) {
@@ -147,12 +185,10 @@ namespace chat_client {
         }
 
         private string createMD5(string input) {
-            // Use input string to calculate MD5 hash
             using (System.Security.Cryptography.MD5 md5 = System.Security.Cryptography.MD5.Create()) {
                 byte[] inputBytes = Encoding.ASCII.GetBytes(input);
                 byte[] hashBytes = md5.ComputeHash(inputBytes);
-
-                // Convert the byte array to hexadecimal string
+                
                 StringBuilder sb = new StringBuilder();
                 for (int i = 0; i < hashBytes.Length; i++) {
                     sb.Append(hashBytes[i].ToString("x2"));

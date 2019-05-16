@@ -5,6 +5,7 @@ using System.Net.Sockets;
 
 namespace chat_client {
     public partial class LoginForm : Form {
+        private JsonWorker jw = new JsonWorker();
         private Socket socket;
         private bool isConnected;
 
@@ -19,8 +20,12 @@ namespace chat_client {
                 MessageBox.Show("No server connection!");
                 return;
             }
+
+            if (login_text.Text == "" || password_text.Text == "") {
+                return;
+            }
             
-            JsonWorker jw = new JsonWorker();
+            
             socket.Send(jw.jsonAuthentication(login_text.Text, password_text.Text));
 
             try {
@@ -34,6 +39,9 @@ namespace chat_client {
             }
             
             ChatForm cf = new ChatForm(socket, this);
+            cf.StartPosition = FormStartPosition.Manual;
+            cf.Location = Location;
+            cf.setUsername(login_text.Text);
             cf.Show();
             Hide();
         }
@@ -55,10 +63,9 @@ namespace chat_client {
                 MessageBox.Show("Cannot connect to " + host_text.Text + ":" + port_text.Text + "\n" + ex.Message);
                 return;
             }
-
-            JsonWorker jw = new JsonWorker();
+            
             socket.Send(jw.jsonHandshake());
-
+            
             byte[] handshakeResponce = new byte[512];
             socket.Receive(handshakeResponce);
 
@@ -125,10 +132,21 @@ namespace chat_client {
                 log_label.Text = "Not connected!";
                 return;
             }
-
+            
+            socket.Send(jw.jsonCloseConnection());
             isConnected = false;
             socket.Close();
             log_label.Text = "Disconnected from server.";
+        }
+
+        private void LoginForm_FormClosing(object sender, FormClosingEventArgs e) {
+            if (!isConnected) {
+                return;
+            }
+            
+            socket.Send(jw.jsonCloseConnection());
+            isConnected = false;
+            socket.Close();
         }
     }
 }
