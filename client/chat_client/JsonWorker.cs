@@ -3,19 +3,20 @@ using System.Text;
 using System.IO;
 using System.Runtime.Serialization.Json;
 using System.Runtime.Serialization;
+using System.Collections.Generic;
 
 namespace chat_client {
     class JsonWorker {
         private static string handshake_secret = "VXp8v8rF7YefA1hqOX51Wl7g";
 
         [DataContract]
-        class Message {
+        class APIMessage {
             [DataMember]
             protected string action { get; set; }
 
-            public Message() { }
+            public APIMessage() { }
 
-            public Message(string a) {
+            public APIMessage(string a) {
                 action = a;
             }
 
@@ -34,7 +35,7 @@ namespace chat_client {
         }
 
         [DataContract]
-        class ServerResponse : Message {
+        class ServerResponse : APIMessage {
             [DataMember]
             public int code { get; set; }
             [DataMember]
@@ -42,7 +43,7 @@ namespace chat_client {
         }
 
         [DataContract]
-        class HandshakeMessage : Message {
+        class HandshakeMessage : APIMessage {
             [DataMember]
             private string secret { get; set; }
 
@@ -53,7 +54,7 @@ namespace chat_client {
         }
 
         [DataContract]
-        class AuthenticationMessage : Message {
+        class AuthenticationMessage : APIMessage {
             [DataMember]
             private string login { get; set; }
             [DataMember]
@@ -67,7 +68,7 @@ namespace chat_client {
         }
 
         [DataContract]
-        class RegistrationMessage : Message {
+        class RegistrationMessage : APIMessage {
             [DataMember]
             private string login { get; set; }
             [DataMember]
@@ -81,7 +82,7 @@ namespace chat_client {
         }
 
         [DataContract]
-        class UpdateMessage : Message {
+        class UpdateMessage : APIMessage {
             [DataMember]
             private string login { get; set; }
             [DataMember]
@@ -98,7 +99,7 @@ namespace chat_client {
         }
 
         [DataContract]
-        class DeleteMessage : Message {
+        class DeleteMessage : APIMessage {
             [DataMember]
             private string login { get; set; }
             [DataMember]
@@ -112,7 +113,7 @@ namespace chat_client {
         }
 
         [DataContract]
-        class SendMessage : Message {
+        class SendMessage : APIMessage {
             [DataMember]
             private string text { get; set; }
             [DataMember]
@@ -122,6 +123,27 @@ namespace chat_client {
                 action = "send_message";
                 timestamp = uts;
                 text = t;
+            }
+        }
+
+        [DataContract]
+        class GetMessages : APIMessage {
+            [DataMember]
+            private int number_of_messages { get; set; }
+
+            public GetMessages(int n) {
+                action = "get_messages";
+                number_of_messages = n;
+            }
+        }
+
+        [DataContract]
+        class GetMessagesResponce : APIMessage {
+            [DataMember]
+            private List<UserMessage> messages { get; set; }
+
+            public List<UserMessage> getMessages() {
+                return messages;
             }
         }
 
@@ -138,12 +160,12 @@ namespace chat_client {
         }
 
         public byte[] jsonLogout() {
-            Message m = new Message("logout");
+            APIMessage m = new APIMessage("logout");
             return Encoding.ASCII.GetBytes(m.ToJson());
         }
 
         public byte[] jsonCloseConnection() {
-            Message m = new Message("close_connection");
+            APIMessage m = new APIMessage("close_connection");
             return Encoding.ASCII.GetBytes(m.ToJson());
         }
 
@@ -167,9 +189,18 @@ namespace chat_client {
             return Encoding.ASCII.GetBytes(sm.ToJson());
         }
 
-        public byte[] jsonGetMessages() {
-            Message m = new Message("get_messages");
+        public byte[] jsonGetMessages(int numberOfMessages) {
+            APIMessage m = new GetMessages(numberOfMessages);
             return Encoding.ASCII.GetBytes(m.ToJson());
+        }
+
+        public List<UserMessage> getMessagesResponceParse(byte[] jsonResponce) {
+            string json = Encoding.ASCII.GetString(jsonResponce).TrimEnd('\0');
+            using (var ms = new MemoryStream(Encoding.Unicode.GetBytes(json))) {
+                DataContractJsonSerializer deserializer = new DataContractJsonSerializer(typeof(GetMessagesResponce));
+                GetMessagesResponce response = (GetMessagesResponce)deserializer.ReadObject(ms);
+                return response.getMessages();
+            }
         }
 
         public void serverResponceParse(byte[] jsonResponce) {

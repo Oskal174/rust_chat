@@ -69,6 +69,7 @@
     <Compile Include="ManageAccountForm.Designer.cs">
       <DependentUpon>ManageAccountForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="UserMessage.cs" />
     <EmbeddedResource Include="ChatForm.resx">
       <DependentUpon>ChatForm.cs</DependentUpon>
     </EmbeddedResource>

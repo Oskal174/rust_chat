@@ -3,10 +3,12 @@ using System.ComponentModel;
 using System.Threading;
 using System.Windows.Forms;
 using System.Net.Sockets;
+using System.Collections.Generic;
 
 
 namespace chat_client {
     public partial class ChatForm : Form {
+        private List<UserMessage> chatMessages;
         private DateTimeWorker dateTimeWorker = new DateTimeWorker();
         private JsonWorker jsonWorker = new JsonWorker();
         private Socket socket;
@@ -27,14 +29,49 @@ namespace chat_client {
 
         private void updateChatWorker_DoWork(object sender, DoWorkEventArgs e) {
             while (isNeedStopWorker == false) {
-                socket.Send(jsonWorker.jsonGetMessages());
+                socket.Send(jsonWorker.jsonGetMessages(10));
+
+                // todo: update chat form with received messages
+                List<UserMessage> roomMessages = new List<UserMessage>();
+                try {
+                    byte[] serverResponce = new byte[512];
+                    socket.Receive(serverResponce);
+                    roomMessages = jsonWorker.getMessagesResponceParse(serverResponce);
+                }
+                catch (Exception ex) {
+                    MessageBox.Show(ex.ToString());
+                }
+
+                if (validateMessages(roomMessages)) {
+                    chatMessages = roomMessages;
+                    redisplayMessages(chatMessages);
+                }
+
                 Thread.Sleep(5000);
             }
         }
 
+        private bool validateMessages(List<UserMessage> messages) {
+            // Сравнивать с текущими месагами и понимать нужно ли добавлять новые к существующим в chatMessages
+            return true;
+        }
+
+        private void redisplayMessages(List<UserMessage> messages) {
+            chatText.Text = "";
+            foreach (UserMessage msg in messages) {
+                showMessage(msg);
+            }
+        }
+
+        private void showMessage(UserMessage msg) {
+            chatText.Text += msg.author + ":";
+            chatText.Text += Environment.NewLine;
+            chatText.Text += msg.text;
+            chatText.Text += Environment.NewLine;
+        }
+
         private void sendMessageButton_Click(object sender, EventArgs e) {
-            socket.Send(jsonWorker.jsonSendMessage(messageText.Text, dateTimeWorker.getCurrentUnixTimestamp()));
-            messageText.Text = "";
+            sendMessage();
         }
 
         private void logout_Click(object sender, EventArgs e) {
@@ -60,6 +97,23 @@ namespace chat_client {
             loginForm.StartPosition = StartPosition;
             loginForm.Location = Location;
             loginForm.Show();
-        }      
+        }
+
+        private void messageText_KeyDown(object sender, KeyEventArgs e) {
+            switch (e.KeyCode) {
+                case Keys.Return:
+                    sendMessage();
+                    break;
+            }
+        }
+
+        private void sendMessage() {
+            if (messageText.Text == "") {
+                return;
+            } 
+
+            socket.Send(jsonWorker.jsonSendMessage(messageText.Text, dateTimeWorker.getCurrentUnixTimestamp()));
+            messageText.Text = "";
+        }
     }
 }

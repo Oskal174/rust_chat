@@ -1,3 +1,4 @@
+use std::default;
 use std::io::{Read, Write};
 use std::net::TcpStream;
 use serde_derive::{Serialize, Deserialize};
@@ -50,6 +51,31 @@ pub struct SendMessage {
     pub action: String,
     pub text: String,
     pub timestamp: i32
+}
+
+#[derive(Deserialize, Serialize)]
+pub struct GetMessages {
+    pub action: String,
+    pub number_of_messages: i32
+}
+
+#[derive(Deserialize, Serialize)]
+pub struct Message {
+    pub author: String,
+    pub text: String,
+    pub timestamp: i32
+}
+
+#[derive(Deserialize, Serialize)]
+pub struct GetMessagesResponce {
+    pub action: String,
+    pub messages: Vec<Message>   
+}
+
+impl Default for GetMessagesResponce {
+    fn default() -> Self {
+        GetMessagesResponce {action: "get_messages".to_string(), messages: vec!()}
+    }
 }
 
 

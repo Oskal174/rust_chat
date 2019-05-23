@@ -112,7 +112,7 @@ fn processing_client(mut client_socket: TcpStream) {
             "\"update_password\""   => process_update_password(&mut client_socket, &sqlite_handler, serde_json::from_str(&input_str).unwrap()),
             
             "\"send_message\""      => process_send_message(&mut client_socket, &sqlite_handler, &mut session, serde_json::from_str(&input_str).unwrap()),
-
+            "\"get_messages\""      => process_get_messages(&mut client_socket, &sqlite_handler, &mut session, serde_json::from_str(&input_str).unwrap()),
             _ => {},
         }
 

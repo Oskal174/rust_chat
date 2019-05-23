@@ -75,7 +75,7 @@ Hash - md5.
 ### Client side
 {"action": "get_messages", "number_of_messages": number}
 
-*number_of_messages* - get last N messages.
+*number_of_messages* - get last N messages or less.
 
 ### Server side
 {"action": "get_messages", messages: [

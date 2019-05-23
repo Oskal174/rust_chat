@@ -60,16 +60,16 @@
             // messageText
             // 
             this.messageText.Location = new System.Drawing.Point(12, 333);
-            this.messageText.Multiline = true;
             this.messageText.Name = "messageText";
-            this.messageText.Size = new System.Drawing.Size(567, 51);
+            this.messageText.Size = new System.Drawing.Size(567, 22);
             this.messageText.TabIndex = 2;
+            this.messageText.KeyDown += new System.Windows.Forms.KeyEventHandler(this.messageText_KeyDown);
             // 
             // sendMessageButton
             // 
             this.sendMessageButton.Location = new System.Drawing.Point(594, 333);
             this.sendMessageButton.Name = "sendMessageButton";
-            this.sendMessageButton.Size = new System.Drawing.Size(166, 51);
+            this.sendMessageButton.Size = new System.Drawing.Size(166, 31);
             this.sendMessageButton.TabIndex = 3;
             this.sendMessageButton.Text = "Отправить";
             this.sendMessageButton.UseVisualStyleBackColor = true;
